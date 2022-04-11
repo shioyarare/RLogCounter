@@ -1,6 +1,9 @@
 #! /usr/bin/env ruby
 $stdout.sync = true
 
+# flags
+ignore_cached = true
+
 # check args
 if ARGV.length <= 0 then
   puts "input filename."
@@ -51,6 +54,11 @@ File.open(fname, mode ="rt") { |f|
       # reset
       rlogc = {} 
     else
+      # ignore case
+      if ignore_cached and line.include?("CACHE") then
+        next
+      end
+      
       # extract query
       target = /(?<=\)).*?(?=\[)/.match(line).to_s.strip.chomp
         if target.empty? then 
