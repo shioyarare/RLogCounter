@@ -1,0 +1,4 @@
+#! /usr/bin/env bash
+base=${BASH_SOURCE[0]}
+link=`readlink $base`
+$(dirname $link)/main.rb $1
