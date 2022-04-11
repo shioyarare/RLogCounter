@@ -20,7 +20,7 @@ def writeCL (endpoint, data, val_min=2)
     if e[1] <= val_min then
       next
     end
-    puts "\t<#{e[1]}> - `#{e[0]}`"
+    puts "\t<#{e[1]}> - '#{e[0]}'"
   end
 end
 
