@@ -56,6 +56,7 @@ File.open(fname, mode ="rt") { |f|
         if target.empty? then 
           target = /(?<=\)).*?$/.match(line).to_s.strip.chomp
         end
+        if target.empty? then next end
         rlogc[target] = rlogc.fetch(target, 0) + 1
     end
   }
