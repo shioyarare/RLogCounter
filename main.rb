@@ -16,7 +16,6 @@ fname = ARGV[0]
 # Output 
 def writeCL (endpoint, data, val_min=2)
   puts print "\e[31m#{endpoint}\e[0m"
-
   data.each do |e|
     if e[1] <= val_min then
       next
@@ -26,9 +25,9 @@ def writeCL (endpoint, data, val_min=2)
 end
 
 File.open(fname, mode ="rt") { |f|
-  tag = ""   # log tags
-  rlogc = {} # Rails log counter
-  endpoint= ""  # Endpoint
+  tag      = ""  # log tags
+  rlogc    = {}  # Rails log counter
+  endpoint = ""  # Endpoint
 
   f.each_line{ |line|
 
@@ -47,20 +46,16 @@ File.open(fname, mode ="rt") { |f|
       endpoint = /(?<=").*?(?=")/.match(line).to_s.strip.chomp
     elsif line.include?("Completed 200 OK") then
       # Query end
-      
       res = rlogc.sort_by { |_, v| v}.reverse!
       writeCL(endpoint, res)
-
       # reset
       rlogc = {} 
     else
       # extract query
       target = /(?<=\)).*?(?=\[)/.match(line).to_s.strip.chomp
-      
         if target.empty? then 
           target = /(?<=\)).*?$/.match(line).to_s.strip.chomp
         end
-  
         rlogc[target] = rlogc.fetch(target, 0) + 1
     end
   }
