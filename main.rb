@@ -21,7 +21,7 @@ fname = ARGV[0]
 
 # Output 
 def writeCL (endpoint, data, val_min=2)
-  puts print "\e[31m#{endpoint}\e[0m"
+  puts print "\e[32m#{endpoint}\e[0m"
   data.each do |e|
     if e[1] <= val_min then
       next
