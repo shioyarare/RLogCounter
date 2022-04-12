@@ -4,6 +4,9 @@ $stdout.sync = true
 # flags
 ignore_cached = true
 
+# save checked query
+checked = {}
+
 # check args
 if ARGV.length <= 0 then
   puts "input filename."
@@ -49,6 +52,14 @@ File.open(fname, mode ="rt") { |f|
       endpoint = /(?<=").*?(?=")/.match(line).to_s.strip.chomp
     elsif line.include?("Completed 200 OK") then
       # Query end
+
+      # output once
+      if checked.fetch(endpoint, false) then 
+        rlogc = {}
+        next 
+      end
+      checked[endpoint] = true
+
       res = rlogc.sort_by { |_, v| v}.reverse!
       writeCL(endpoint, res)
       # reset
