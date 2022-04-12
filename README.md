@@ -8,7 +8,11 @@ Railsで出力されるログをカウントする
 ```
 # ln -fs ~/github/RLogCounter/rlogc /usr/bin/
 ```
-2. 実行
+2-a. 実行
 ```
 $ rlogc [Railsのログファイル]
+```
+2-b. 対話モード
+```
+$ rails s | rlogc
 ```
