@@ -25,5 +25,5 @@ def writeCL (data, val_min=2)
     puts " | #{count}: '#{query}'"
   end
 
-  puts " L__ignored query is #{ignore_count} by number of calls is small"
+  puts " L__ignored query is #{ignore_count} by number of calls is small (<= #{val_min})"
 end

@@ -1,4 +1,5 @@
 #! /usr/bin/env ruby
+require File.expand_path('../utils.rb', __FILE__)
 require File.expand_path('../writer.rb', __FILE__)
 require File.expand_path('../filein.rb', __FILE__)
 require File.expand_path('../interactin.rb', __FILE__)
@@ -9,18 +10,6 @@ $empty_serializer = " "
 # flags
 $ignore_cached = true
 $view_logtag   = true
-
-# total calc
-def rlogCount (rlogd)
-  # Classification by serializer
-  dict = {}
-  rlogd.each do |e|
-    key = *e.toArr
-    dict[key] = dict.fetch(key, 0) + 1
-  end
-
-  return dict
-end
 
 class RLog
   attr_accessor :query, :endpoint, :serializer
@@ -34,6 +23,7 @@ class RLog
     return [@serializer, @endpoint, @query]
   end
 end
+
 # check args
 if ARGV.length <= 0 then
   puts "No input file -> run interactive mode."

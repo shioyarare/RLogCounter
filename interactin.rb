@@ -2,6 +2,7 @@
 def interactInput() 
   rlogc      = []  # Rails log analyze
   endpoint   = ""  # Endpoint
+  active_serializer = false
 
   while line = gets
     # rails system message
@@ -9,37 +10,40 @@ def interactInput()
       puts line
       next
     end
-    # get current log tags
-    wrraped_data = line.scan(/(?<=\[).*?(?=\])/)
+    # get current log tags (no use)
+    wrraped_data = cutWrapData(line)
     if $view_logtag and wrraped_data.length > 2 then
       curr_tag = wrraped_data[1]
     end
-    # dont read, skip
+
+    if wrraped_data.length >= 3 and wrraped_data[2] == "active_model_serializers" then
+      active_serializer = true
+    else 
+      active_serializer = false
+    end
+
+    # prev info
     if line.include?("↳") then 
-      if wrraped_data.length >= 3 and wrraped_data[2] == "active_model_serializers"
-        rlogc.last.serializer = line.scan(/(?<=↳\ ).*?(?=:)/).first
-      end
+      rlogc.last.serializer = infileReader(line)
       next
     end
+
     if line.include?("Started GET") or line.include?("Started POST") then
-      # Query start
-      endpoint = /(?<=").*?(?=")/.match(line).to_s.strip.chomp
+      endpoint = endpointReader(line)
+
     elsif line.include?("Completed 200 OK") then
-      # Query end
-      # output once
       data = rlogCount(rlogc)
-      writeCL(data)
-      # reset
+      writeCL(data, -1)
+
       rlogc = []
     else
       # ignore case
       if $ignore_cached and line.include?("CACHE") then
         next
       end
-      target = /(?<=\)).*?(?=\[)/.match(line).to_s.strip.chomp
-      if target.empty? then
-        target = /(?<=\)).*?$/.match(line).to_s.strip.chomp
-      end
+
+      target = queryReader(line)
+
       if target.empty? then next end
       rlogc.push( RLog.new(target, endpoint, $empty_serializer) )
     end

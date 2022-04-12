@@ -3,31 +3,34 @@ def fileInput(fname)
   File.open(fname, mode ="rt") { |f|
     rlogc      = []  # Rails log analyze
     endpoint   = ""  # Endpoint
+    active_serializer = false
 
     f.each_line{ |line|
 
-      # get current log tags
-      wrraped_data = line.scan(/(?<=\[).*?(?=\])/)
-      if $view_logtag and wrraped_data.length > 2 then
+      # get current log tags (no use)
+      wrraped_data = cutWrapData(line)
+      if $view_logtag and wrraped_data.length >= 2 then
         curr_tag = wrraped_data[1]
       end
 
-      # dont read, skip
+      if wrraped_data.length >= 3 and wrraped_data[2] == "active_model_serializers" then
+        active_serializer = true
+      else 
+        active_serializer = false
+      end
+
+      # prev info
       if line.include?("↳") then 
-        if wrraped_data.length >= 3 and wrraped_data[2] == "active_model_serializers"
-          rlogc.last.serializer = line.scan(/(?<=↳\ ).*?(?=:)/).first
-        end
+        rlogc.last.serializer = infileReader(line)
         next
       end
 
       if line.include?("Started GET") or line.include?("Started POST") then
-        # Query start
-        endpoint = /(?<=").*?(?=")/.match(line).to_s.strip.chomp
-      elsif line.include?("Completed 200 OK") then
-        # Query end
+        endpoint = endpointReader(line)
 
-        # output once
+      elsif line.include?("Completed 200 OK") then
         if checked.fetch(endpoint, false) then 
+
           rlogc = []
           next 
         end
@@ -35,7 +38,7 @@ def fileInput(fname)
 
         data = rlogCount(rlogc)
         writeCL(data)
-        # reset
+
         rlogc = []
       else
         # ignore case
@@ -43,10 +46,7 @@ def fileInput(fname)
           next
         end
 
-        target = /(?<=\)).*?(?=\[)/.match(line).to_s.strip.chomp
-        if target.empty? then
-          target = /(?<=\)).*?$/.match(line).to_s.strip.chomp
-        end
+        target = queryReader(line)
 
         if target.empty? then next end
         rlogc.push( RLog.new(target, endpoint, $empty_serializer) )
