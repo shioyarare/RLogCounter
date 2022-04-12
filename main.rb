@@ -1,8 +1,10 @@
 #! /usr/bin/env ruby
 $stdout.sync = true
+$empty_serializer = " "
 
 # flags
 ignore_cached = true
+view_logtag   = true
 
 # save checked query
 checked = {}
@@ -19,33 +21,80 @@ end
 # open file
 fname = ARGV[0]
 
-# Output 
-def writeCL (endpoint, data, val_min=2)
-  puts print "\e[32m#{endpoint}\e[0m"
-  data.each do |e|
-    if e[1] <= val_min then
+# total calc
+def rlogCount (rlogd)
+  # Classification by serializer
+  dict = {}
+  rlogd.each do |e|
+    key = *e.toArr
+    dict[key] = dict.fetch(key, 0) + 1
+  end
+
+  return dict
+end
+
+def writeCL (data, val_min=2)
+  ignore_count = 0
+  res = {}
+  keys = data.keys.sort{|a, b| a[0]<=>b[0]}
+  pserializer = $empty_serializer
+  pendpoint   = ""
+  keys.each do |key|
+    serializer = key[0]
+    endpoint   = key[1]
+    query      = key[2]
+    count      = data[key]
+    if count <= val_min then
+      ignore_count += 1
       next
     end
-    puts "\t<#{e[1]}> - '#{e[0]}'"
+
+    if pendpoint != endpoint then
+      puts "\e[32m#{endpoint}\e[39m"
+      pendpoint = endpoint
+    end
+    if pserializer != serializer then
+      puts " \e[32m|-@#{serializer}@\e[39m"
+      pserializer = serializer
+    end
+    puts " | #{count}: '#{query}'"
+  end
+
+  puts " L__ignored query is #{ignore_count} by number of calls is small"
+end
+
+class Rlog
+  attr_accessor :query, :endpoint, :serializer
+  def initialize(query, endpoint, serializer)
+    @query      = query
+    @serializer = serializer
+    @endpoint   = endpoint
+  end
+
+  def toArr()
+    return [@serializer, @endpoint, @query]
   end
 end
 
 File.open(fname, mode ="rt") { |f|
-  tag      = ""  # log tags
-  rlogc    = {}  # Rails log counter
-  endpoint = ""  # Endpoint
+  rlogc      = []  # Rails log analyze
+  endpoint   = ""  # Endpoint
 
   f.each_line{ |line|
 
-    # dont read, skip
-    if line.include?("↳") then 
-      next
+    # get current log tags
+    wrraped_data = line.scan(/(?<=\[).*?(?=\])/)
+    if view_logtag and wrraped_data.length > 2 then
+      curr_tag = wrraped_data[1]
     end
 
-    # get current log tags
-    curr_tag = line.scan(/(?<=\[).*?(?=\])/).slice(1).to_s.strip.chomp
-
-    if curr_tag.empty? then next end
+    # dont read, skip
+    if line.include?("↳") then 
+      if wrraped_data.length >= 3 and wrraped_data[2] == "active_model_serializers"
+        rlogc.last.serializer = line.scan(/(?<=↳\ ).*?(?=:)/).first
+      end
+      next
+    end
 
     if line.include?("Started GET") or line.include?("Started POST") then
       # Query start
@@ -55,28 +104,28 @@ File.open(fname, mode ="rt") { |f|
 
       # output once
       if checked.fetch(endpoint, false) then 
-        rlogc = {}
+        rlogc = []
         next 
       end
       checked[endpoint] = true
 
-      res = rlogc.sort_by { |_, v| v}.reverse!
-      writeCL(endpoint, res)
+      data = rlogCount(rlogc)
+      writeCL(data)
       # reset
-      rlogc = {} 
+      rlogc = []
     else
       # ignore case
       if ignore_cached and line.include?("CACHE") then
         next
       end
       
-      # extract query
       target = /(?<=\)).*?(?=\[)/.match(line).to_s.strip.chomp
-        if target.empty? then 
-          target = /(?<=\)).*?$/.match(line).to_s.strip.chomp
-        end
-        if target.empty? then next end
-        rlogc[target] = rlogc.fetch(target, 0) + 1
+      if target.empty? then
+        target = /(?<=\)).*?$/.match(line).to_s.strip.chomp
+      end
+
+      if target.empty? then next end
+      rlogc.push( Rlog.new(target, endpoint, $empty_serializer) )
     end
   }
 }
