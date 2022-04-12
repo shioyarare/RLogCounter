@@ -1,21 +1,14 @@
 #! /usr/bin/env ruby
-require './writer.rb'
-require './filein.rb'
+require File.expand_path('../writer.rb', __FILE__)
+require File.expand_path('../filein.rb', __FILE__)
+require File.expand_path('../interactin.rb', __FILE__)
+
 $stdout.sync = true
 $empty_serializer = " "
 
 # flags
 $ignore_cached = true
 $view_logtag   = true
-
-# check args
-if ARGV.length <= 0 then
-  puts "input filename."
-  exit
-end
-unless File.exist?(ARGV[0]) then
-  puts "No such file '#{ARGV[0]}'."
-end
 
 # total calc
 def rlogCount (rlogd)
@@ -29,7 +22,7 @@ def rlogCount (rlogd)
   return dict
 end
 
-class Rlog
+class RLog
   attr_accessor :query, :endpoint, :serializer
   def initialize(query, endpoint, serializer)
     @query      = query
@@ -41,5 +34,16 @@ class Rlog
     return [@serializer, @endpoint, @query]
   end
 end
+# check args
+if ARGV.length <= 0 then
+  puts "No input file -> run interactive mode."
+  interactInput()
+  exit
+end
+unless File.exist?(ARGV[0]) then
+  puts "No such file '#{ARGV[0]}'."
+end
+
+
 
 fileInput(ARGV[0])

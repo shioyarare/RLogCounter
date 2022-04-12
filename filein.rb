@@ -49,7 +49,7 @@ def fileInput(fname)
         end
 
         if target.empty? then next end
-        rlogc.push( Rlog.new(target, endpoint, $empty_serializer) )
+        rlogc.push( RLog.new(target, endpoint, $empty_serializer) )
       end
     }
   }
