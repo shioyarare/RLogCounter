@@ -2,7 +2,7 @@ def writeCL (data, val_min=2)
   ignore_count = 0
   res = {}
   keys = data.keys.sort{|a, b| a[0]<=>b[0]}
-  pserializer = $empty_serializer
+  pserializer = ""
   pendpoint   = ""
   keys.each do |key|
     serializer = key[0]

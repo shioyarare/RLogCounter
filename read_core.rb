@@ -29,7 +29,7 @@ class ReadCore
     end
 
     if line.include?("Started GET") or line.include?("Started POST") then
-      endpoint = endpointReader(line)
+      @@endpoint = endpointReader(line)
 
     elsif line.include?("Completed 200 OK") then
       data = rlogCount(@@rlogc)
@@ -45,7 +45,7 @@ class ReadCore
       target = queryReader(line)
 
       if target.empty? then return end
-      @@rlogc.push( RLog.new(target, endpoint, @empty_serializer) )
+      @@rlogc.push( RLog.new(target, @@endpoint, @@empty_serializer) )
     end
   end
 
