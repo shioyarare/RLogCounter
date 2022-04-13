@@ -7,12 +7,14 @@ class ReadCore
     @@is_interactive = true
   end
 
-  def self.init(is_interactive, view_logtag, ignore_cache, query_min_count)
+  def self.init(is_interactive, view_logtag, ignore_cache, query_min_count, queries_p_once)
     @@is_interactive   = is_interactive,
     @@view_logtag      = view_logtag,
     @@ignore_cache     = ignore_cache,
     @@query_min_count  = query_min_count,
+    @@queries_p_once   = queries_p_once,
     @@rlogc            = [],
+    @@check            = {},
     @@empty_serializer = ""
   end
 
@@ -32,6 +34,12 @@ class ReadCore
       @@endpoint = endpointReader(line)
 
     elsif line.include?("Completed 200 OK") then
+      if @@queries_p_once and @@check.fetch(@@endpoint, false) and
+        @@rlogc = []
+        return
+      end
+      @@check[@@endpoint] = true
+
       data = rlogCount(@@rlogc)
       writeCL(data, @@query_min_count)
 

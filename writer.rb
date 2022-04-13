@@ -15,7 +15,7 @@ def writeCL (data, val_min=2)
     end
 
     if pendpoint != endpoint then
-      puts "\e[32m#{endpoint}\e[39m"
+      puts "\e[32m[#{endpoint}]\e[39m"
       pendpoint = endpoint
     end
     if pserializer != serializer then

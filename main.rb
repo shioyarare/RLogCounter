@@ -25,7 +25,8 @@ if ARGV.length <= 0 then
     is_interactive  = true,
     view_logtag     = true,
     ignore_cache    = true,
-    query_min_count = -1
+    query_min_count = -1,
+    queries_p_once  = false
   )
   while line = gets
     ReadCore.index(line)
@@ -41,7 +42,8 @@ ReadCore.init(
   is_interactive  = false,
   view_logtag     = true,
   ignore_cache    = true,
-  query_min_count = 2
+  query_min_count = 2,
+  queries_p_once  = true
 )
 
 File.open(ARGV[0], mode="rt") { |f| 
